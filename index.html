@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_orange.css"> <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <?!= include('Stylesheet'); ?>
+  </head>
+  <body>
+
+    <div id="page-add" class="container page-section active">
+      <div class="card">
+        <h2>🍳 บัญชีร้านเมนูไข่</h2>
+        <form id="myForm" onsubmit="handleFormSubmit(this)">
+          <div class="d-flex justify-content-center mb-3">
+            <input type="radio" class="btn-check" name="type" id="income" value="รายรับ" autocomplete="off" checked>
+            <label class="btn btn-outline-primary me-2 rounded-pill px-4" for="income">รายรับ 💰</label>
+            <input type="radio" class="btn-check" name="type" id="expense" value="รายจ่าย" autocomplete="off">
+            <label class="btn btn-outline-danger rounded-pill px-4" for="expense">รายจ่าย 💸</label>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">วันที่</label>
+            <input type="text" class="form-control" name="date" required id="datePicker" placeholder="เลือกวันที่">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">ช่องทาง/หมวดหมู่</label>
+            <select class="form-select" name="category">
+              <optgroup label="💰 ช่องทางรายรับ">
+                <option value="Home (BBL)">🏠 Home (BBL)</option>
+                <option value="Lineman (Kbank)">💚 Lineman (Kbank)</option>
+                <option value="Shopee (TTB)">🧡 Shopee (TTB)</option>
+                <option value="Grab (Kbank)">🛵 Grab (Kbank)</option>
+              </optgroup>
+              <optgroup label="💸 รายจ่าย">
+                 <option value="วัตถุดิบ (ทุน)">🥚 วัตถุดิบ (ทุน)</option>
+                 <option value="ค่าใช้จ่ายทั่วไป">🧾 ค่าใช้จ่ายทั่วไป</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">รายละเอียดเพิ่มเติม</label>
+            <input type="text" class="form-control" name="detail" placeholder="เช่น ค่าไข่ไก่ 3 แผง หรือ ออเดอร์เช้า">
+          </div>
+          <div class="mb-4">
+            <label class="form-label">จำนวนเงิน</label>
+            <input type="number" class="form-control" name="amount" placeholder="0.00" required inputmode="decimal">
+          </div>
+          <button type="submit" class="btn btn-save">บันทึกรายการ 🍳</button>
+          <div id="message" class="mt-3 text-center" style="display:none; color:#F39C12; font-weight:bold;"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="page-stats" class="container page-section">
+      <div class="card">
+        <h4>📊 สรุปยอดร้าน</h4>
+        <div class="row g-2 mb-3">
+          <div class="col-4">
+            <div class="summary-box bg-income">
+              <small>ยอดขาย</small><br><span id="totalIncome">0</span>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="summary-box bg-expense">
+              <small>ต้นทุน</small><br><span id="totalExpense">0</span>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="summary-box bg-balance">
+              <small>กำไร</small><br><span id="totalBalance">0</span>
+            </div>
+          </div>
+        </div>
+        <div style="position: relative; height:250px; width:100%; margin-bottom:20px;">
+          <canvas id="expenseChart"></canvas>
+        </div>
+        <h6 class="text-muted mt-3">📝 รายการล่าสุด</h6>
+        <ul class="list-group list-group-flush" id="recentList" style="font-size: 0.9rem;"></ul>
+        <button onclick="loadDashboard()" class="btn btn-sm btn-outline-secondary mt-3 rounded-pill w-100">🔄 รีเฟรชข้อมูล</button>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchPage('page-add', this)">
+        <i class="bi bi-plus-circle-fill"></i><span>จดบิล</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('page-stats', this)">
+        <i class="bi bi-pie-chart-fill"></i><span>ดูยอด</span>
+      </div>
+    </div>
+
+    <?!= include('JavaScript'); ?>
+  </body>
+</html>
