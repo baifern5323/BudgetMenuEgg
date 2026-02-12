@@ -7,18 +7,22 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_orange.css"> <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_orange.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <?!= include('Stylesheet'); ?>
+    <?!= include('Stylesheet.html'); ?>
   </head>
   <body>
 
     <div id="page-add" class="container page-section active">
       <div class="card">
-        <h2>🍳 บัญชีร้านเมนูไข่</h2>
+        <h2 id="form-title">🍳 จดบิลเมนูไข่</h2>
         <form id="myForm" onsubmit="handleFormSubmit(this)">
+          <!-- Hidden field สำหรับเก็บเลขแถวเวลาแก้ไข -->
+          <input type="hidden" name="row_index" id="row_index">
+          
           <div class="d-flex justify-content-center mb-3">
             <input type="radio" class="btn-check" name="type" id="income" value="รายรับ" autocomplete="off" checked>
             <label class="btn btn-outline-primary me-2 rounded-pill px-4" for="income">รายรับ 💰</label>
@@ -31,7 +35,7 @@
           </div>
           <div class="mb-3">
             <label class="form-label">ช่องทาง/หมวดหมู่</label>
-            <select class="form-select" name="category">
+            <select class="form-select" name="category" id="category">
               <optgroup label="💰 ช่องทางรายรับ">
                 <option value="Home (BBL)">🏠 Home (BBL)</option>
                 <option value="Lineman (Kbank)">💚 Lineman (Kbank)</option>
@@ -46,13 +50,14 @@
           </div>
           <div class="mb-3">
             <label class="form-label">รายละเอียดเพิ่มเติม</label>
-            <input type="text" class="form-control" name="detail" placeholder="เช่น ค่าไข่ไก่ 3 แผง หรือ ออเดอร์เช้า">
+            <input type="text" class="form-control" name="detail" id="detail" placeholder="เช่น ค่าไข่ไก่ 3 แผง">
           </div>
           <div class="mb-4">
             <label class="form-label">จำนวนเงิน</label>
-            <input type="number" class="form-control" name="amount" placeholder="0.00" required inputmode="decimal">
+            <input type="number" step="0.01" class="form-control" name="amount" id="amount" placeholder="0.00" required inputmode="decimal">
           </div>
-          <button type="submit" class="btn btn-save">บันทึกรายการ 🍳</button>
+          <button type="submit" id="submit-btn" class="btn btn-save">บันทึกรายการ 🍳</button>
+          <button type="button" id="cancel-edit" class="btn btn-link w-100 mt-2 text-muted" style="display:none;" onclick="resetForm()">ยกเลิกการแก้ไข</button>
           <div id="message" class="mt-3 text-center" style="display:none; color:#F39C12; font-weight:bold;"></div>
         </form>
       </div>
@@ -60,7 +65,25 @@
 
     <div id="page-stats" class="container page-section">
       <div class="card">
-        <h4>📊 สรุปยอดร้าน</h4>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="m-0">📊 สรุปยอดร้าน</h4>
+          <a id="sheet-link" href="#" target="_blank" class="btn btn-sm btn-outline-success rounded-pill">
+            <i class="bi bi-file-earmark-spreadsheet"></i> ดูชีท
+          </a>
+        </div>
+
+        <!-- ตัวกรองวันที่ -->
+        <div class="row g-2 mb-3 filter-section">
+          <div class="col-6">
+            <label class="small text-muted">เริ่ม</label>
+            <input type="text" id="startDate" class="form-control form-control-sm">
+          </div>
+          <div class="col-6">
+            <label class="small text-muted">ถึง</label>
+            <input type="text" id="endDate" class="form-control form-control-sm">
+          </div>
+        </div>
+
         <div class="row g-2 mb-3">
           <div class="col-4">
             <div class="summary-box bg-income">
@@ -78,24 +101,29 @@
             </div>
           </div>
         </div>
-        <div style="position: relative; height:250px; width:100%; margin-bottom:20px;">
+
+        <div style="position: relative; height:200px; width:100%; margin-bottom:20px;">
           <canvas id="expenseChart"></canvas>
         </div>
-        <h6 class="text-muted mt-3">📝 รายการล่าสุด</h6>
-        <ul class="list-group list-group-flush" id="recentList" style="font-size: 0.9rem;"></ul>
+
+        <h6 class="text-muted mt-3 d-flex justify-content-between">
+          <span>📝 รายการในช่วงวันที่เลือก</span>
+          <span id="itemCount" class="badge bg-light text-dark border">0</span>
+        </h6>
+        <ul class="list-group list-group-flush" id="recentList" style="font-size: 0.85rem;"></ul>
         <button onclick="loadDashboard()" class="btn btn-sm btn-outline-secondary mt-3 rounded-pill w-100">🔄 รีเฟรชข้อมูล</button>
       </div>
     </div>
 
     <div class="bottom-nav">
-      <div class="nav-item active" onclick="switchPage('page-add', this)">
+      <div class="nav-item active" id="nav-add" onclick="switchPage('page-add', this)">
         <i class="bi bi-plus-circle-fill"></i><span>จดบิล</span>
       </div>
-      <div class="nav-item" onclick="switchPage('page-stats', this)">
+      <div class="nav-item" id="nav-stats" onclick="switchPage('page-stats', this)">
         <i class="bi bi-pie-chart-fill"></i><span>ดูยอด</span>
       </div>
     </div>
 
-    <?!= include('JavaScript'); ?>
+    <?!= include('JavaScript.html'); ?>
   </body>
 </html>
