@@ -1,0 +1,81 @@
+<style>
+  /* --- Egg Menu Theme (Yellow & White) --- */
+  body { 
+    background-color: #FEF9E7; /* สีครีมไข่ไก่อ่อนๆ */
+    font-family: 'Kanit', sans-serif; 
+    color: #5D4037; /* สีน้ำตาลเข้ม (เหมือนสีซอส) อ่านง่ายกว่าสีดำสนิท */
+    padding-bottom: 80px; 
+  }
+  .container { max-width: 500px; margin-top: 20px; }
+  
+  .card {
+    border: none; border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(241, 196, 15, 0.15); /* เงาสีทองจางๆ */
+    background-color: #FFFFFF; padding: 20px; margin-bottom: 20px;
+    border: 1px solid #FFF5C4;
+  }
+  h2, h4 { color: #F1C40F; font-weight: 700; text-align: center; text-shadow: 1px 1px 0px #FFF; } /* หัวข้อสีเหลืองทอง */
+  
+  /* --- Animation --- */
+  @keyframes pulse-graph {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  .btn:hover, .nav-item:hover {
+    animation: pulse-graph 1s infinite;
+    cursor: pointer;
+  }
+  
+  /* --- สีปุ่มใหม่ (Yellow Theme) --- */
+  /* ปุ่มรายรับ (สีเหลืองไข่แดงสดใส) */
+  .btn-check:checked + .btn-outline-primary { 
+    background-color: #FFC300; border-color: #FFC300; color: #fff; font-weight: bold;
+    box-shadow: 0 4px 10px rgba(255, 195, 0, 0.4);
+  }
+  .btn-outline-primary { color: #FFC300; border-color: #FFC300; }
+
+  /* ปุ่มรายจ่าย (สีส้มอิฐ - ให้ตัดกับสีเหลือง แต่ยังคุมโทนร้อน) */
+  .btn-check:checked + .btn-outline-danger { 
+    background-color: #E67E22; border-color: #E67E22; color: #fff; font-weight: bold;
+    box-shadow: 0 4px 10px rgba(230, 126, 34, 0.4);
+  }
+  .btn-outline-danger { color: #E67E22; border-color: #E67E22; }
+  
+  /* กล่องกรอกข้อมูล */
+  .form-control, .form-select { 
+    border-radius: 15px; border: 2px solid #FFF0B3; background-color: #FFFFFA; 
+    color: #5D4037;
+  }
+  .form-control:focus, .form-select:focus { border-color: #F1C40F; box-shadow: none; }
+  .flatpickr-input { background-color: #fff !important; }
+
+  /* ปุ่มบันทึก (สีเหลืองทองเข้ม) */
+  .btn-save {
+    background-color: #F39C12; border: none; border-radius: 50px; width: 100%;
+    padding: 12px; font-size: 1.2rem; color: white; transition: 0.3s; font-weight: 600;
+  }
+  .btn-save:hover { background-color: #D35400; } 
+
+  /* Summary Box Styles */
+  .summary-box { text-align: center; padding: 15px; border-radius: 15px; color: white; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+  .bg-income { background-color: #FFC300; color: #fff; } /* เหลือง */
+  .bg-expense { background-color: #E67E22; } /* ส้ม */
+  .bg-balance { background-color: #27AE60; } /* เขียว (กำไร) */
+
+  /* Bottom Navigation Bar */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    background-color: #FFFFFF; box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+    display: flex; justify-content: space-around; padding: 10px 0;
+    z-index: 1000; border-top: 1px solid #FFF5C4;
+  }
+  .nav-item { text-align: center; color: #D7CCC8; cursor: pointer; flex-grow: 1; transition: 0.3s; }
+  .nav-item.active { color: #F39C12; font-weight: bold; transform: translateY(-5px); }
+  .nav-item i { font-size: 1.5rem; display: block; }
+  .nav-item span { font-size: 0.8rem; }
+
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+</style>
