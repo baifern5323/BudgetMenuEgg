@@ -1,0 +1,155 @@
+<script>
+  // --- 1. ตั้งค่า Flatpickr ---
+  const fp = flatpickr("#datePicker", {
+    locale: "th", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y",
+    defaultDate: new Date(), disableMobile: "true"
+  });
+
+  // --- 2. ฟังก์ชันสลับหน้า ---
+  function switchPage(pageId, navElement) {
+    document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    navElement.classList.add('active');
+
+    if(pageId === 'page-stats') {
+      loadDashboard();
+    }
+  }
+
+  // --- 3. ฟังก์ชันบันทึกข้อมูล ---
+  function handleFormSubmit(formObject) {
+    event.preventDefault();
+    const btn = document.querySelector('.btn-save');
+    const originalText = btn.innerText;
+    btn.innerText = 'กำลังบันทึก... 🥚'; btn.disabled = true;
+
+    google.script.run.withSuccessHandler(function(response) {
+        const msg = document.getElementById('message');
+        msg.innerText = response; msg.style.display = 'block';
+        formObject.reset(); fp.setDate(new Date());
+        btn.innerText = originalText; btn.disabled = false;
+        setTimeout(() => { msg.style.display = 'none'; }, 3000);
+      }).saveData(formObject);
+  }
+
+  // --- 4. ฟังก์ชันโหลดและคำนวณ Dashboard ---
+  let myChart = null;
+
+  function loadDashboard() {
+    document.getElementById('recentList').innerHTML = '<li class="list-group-item text-center">กำลังโหลด...</li>';
+    google.script.run.withSuccessHandler(renderDashboard).getDataForDashboard();
+  }
+
+  function renderDashboard(data) {
+    if (!data || data.length === 0) {
+       document.getElementById('recentList').innerHTML = '<li class="list-group-item text-center text-muted">ยังไม่มีข้อมูลรายการ</li>';
+       return;
+    }
+
+    let income = 0;
+    let expense = 0;
+    let categories = {};
+    let recentHtml = '';
+    const limit = 5; 
+    let count = 0;
+
+    for (let i = data.length - 1; i >= 0; i--) {
+        let row = data[i];
+        if (!row[0] || row[4] === "") continue;
+
+        let type = row[1];
+        let cat = row[2];
+        let amount = parseFloat(String(row[4]).replace(/,/g, ''));
+        if (isNaN(amount)) amount = 0;
+
+        if (type === 'รายรับ') {
+            income += amount;
+            if (categories[cat]) { categories[cat] += amount; } 
+            else { categories[cat] = amount; }
+        } else if (type === 'รายจ่าย') {
+            expense += amount;
+            if (categories[cat]) { categories[cat] += amount; } 
+            else { categories[cat] = amount; }
+        }
+
+        if (count < limit) {
+            let colorClass = type === 'รายรับ' ? '#F39C12' : '#E67E22'; // เหลือง vs ส้ม
+            let sign = type === 'รายรับ' ? '+' : '-';
+            
+            recentHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <span class="badge bg-light text-dark border">${row[0]}</span> 
+                <span class="ms-1" style="font-weight:500; color:#5D4037;">${cat}</span>
+                <div class="text-muted" style="font-size:0.8rem; margin-left: 5px;">${row[3]}</div>
+              </div>
+              <span style="color:${colorClass}; font-weight:700;">${sign}${amount.toLocaleString()}</span>
+            </li>`;
+            count++;
+        }
+    }
+
+    document.getElementById('totalIncome').innerText = income.toLocaleString();
+    document.getElementById('totalExpense').innerText = expense.toLocaleString();
+    document.getElementById('totalBalance').innerText = (income - expense).toLocaleString();
+    document.getElementById('recentList').innerHTML = recentHtml || '<li class="list-group-item text-center">ยังไม่มีข้อมูล</li>';
+
+    if (income > 0 || expense > 0) {
+        renderChart(categories);
+    } else {
+        if (myChart) { myChart.destroy(); }
+    }
+  }
+
+  function renderChart(categories) {
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    const labels = Object.keys(categories);
+    const values = Object.values(categories);
+    
+    // --- ตั้งค่าสีตามหมวดหมู่ร้านเมนูไข่ ---
+    const colorMap = {
+      'Home (BBL)': '#F1C40F',       // เหลืองทอง
+      'Lineman (Kbank)': '#82E0AA',  // เขียวอ่อนๆ (Lineman) ให้เข้ากับธีมพาสเทล
+      'Shopee (TTB)': '#F39C12',     // ส้มเหลือง (Shopee)
+      'Grab (Kbank)': '#F7DC6F',     // เหลืองครีม (Grab/Food)
+      'วัตถุดิบ (ทุน)': '#E74C3C',     // สีแดงอมส้ม (รายจ่าย)
+      'ค่าใช้จ่ายทั่วไป': '#D35400'    // สีส้มเข้ม
+    };
+    
+    // สีสำรองเผื่อมีหมวดอื่นเพิ่ม
+    const fallbackColors = ['#FFC300', '#FF5733', '#DAF7A6', '#FFC0CB', '#AED6F1'];
+
+    let finalColors = labels.map((labelName, index) => {
+       if (colorMap[labelName]) return colorMap[labelName];
+       return fallbackColors[index % fallbackColors.length];
+    });
+
+    if (myChart) { myChart.destroy(); }
+
+    myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: finalColors,
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { font: { family: 'Kanit', size: 12 }, boxWidth: 15 } },
+                 tooltip: {
+                  backgroundColor: 'rgba(93, 64, 55, 0.9)', // Tooltip สีน้ำตาลเข้ม
+                  bodyFont: { family: 'Kanit' }
+                }
+            }
+        }
+    });
+  }
+</script>
